@@ -1,0 +1,149 @@
+-- programs ------------------------------------------------
+
+entrypoints Program ;
+
+Program.   Program ::= [TopDef] ;
+
+FnDef.	   TopDef ::= Function;
+ObDef.     TopDef ::= Object;
+
+separator nonempty TopDef "" ;
+
+Arg. 	   Arg ::= Type Ident;
+
+separator  Arg "," ;
+
+
+ClassKeyword.      ClassOrStruct ::= "class" ;
+StructKeyword.     ClassOrStruct ::= "struct" ;
+
+-- Initializators ------------------------------------------
+
+NoInit.    Item ::= Ident ; 
+Init.      Item ::= Ident "=" Expr ;
+separator nonempty Item "," ;
+separator nonempty Ident "," ;
+
+-- Declarators ---------------------------------------------
+FunctionDef.   Function ::= Type Ident "(" [Arg] ")" InstrBlock ;
+ObjectDef.     Object   ::= ClassOrStruct Ident ObjectBlock;
+ExtObjDef.     Object   ::= ClassOrStruct Ident "extends" Ident ObjectBlock;
+
+DeclareVar.    Decl ::= Type [Ident] ";" ;
+DeclareFun.    Decl ::= Function ;
+
+separator nonempty Decl "" ;
+
+Block.     InstrBlock  ::= "{" [Stmt] "}" ;
+ClBlock.   ObjectBlock ::= "{" [Decl] "}" ;
+
+-- statements ----------------------------------------------
+separator  Stmt "" ;
+
+Empty.     Stmt ::= ";" ;
+BStmt.     Stmt ::= InstrBlock ;
+Decl.      Stmt ::= Type [Item] ";" ;
+Ass.       Stmt ::= Expr "=" Expr  ";" ;
+Incr.      Stmt ::= Expr "++"  ";" ;
+Decr.      Stmt ::= Expr "--"  ";" ;
+Ret.       Stmt ::= "return" Expr ";" ;
+VRet.      Stmt ::= "return" ";" ;
+Cond.      Stmt ::= "if" "(" Expr ")" Stmt  ;
+CondElse.  Stmt ::= "if" "(" Expr ")" Stmt "else" Stmt  ;
+While.     Stmt ::= "while" "(" Expr ")" Stmt ;
+ForEach.   Stmt ::= "for" "(" ArrayType Ident ":" Ident ")" Stmt;
+SExp.      Stmt ::= Expr  ";" ;
+
+-- Type System ----------------------------------------------
+-- Builtins:
+TInt.        TypeBuiltin ::= "int" ;
+TStr.        TypeBuiltin ::= "string" ;
+TBool.       TypeBuiltin ::= "boolean" ;
+TVoid.       TypeBuiltin ::= "void" ;
+
+-- Basic:
+TBuiltin.    BasicType ::= TypeBuiltin ;
+TObject.     BasicType ::= Ident;
+
+-- Arrayable:
+--AType.      ArrayType ::= BasicType ; -- Deny array of arrays
+AType.        ArrayType ::= Type ;      -- Allow array of arrays
+-- 
+TArray.      Type ::= ArrayType "[]";
+TBasic.      Type ::= BasicType ;
+
+
+-- internal   Fun. Type ::= Type "(" [Type] ")" ;
+-- separator  Type "," ;
+
+-- Literals ------------------------------------------------
+LVNULL.       NULL  ::= "null" ;
+LVTrue.       True  ::= "true" ;
+LVFalse.      False ::= "false" ;
+
+LInt.       ExprLiteral ::= Integer;
+LTrue.      ExprLiteral ::= True;
+LFalse.     ExprLiteral ::= False;
+LNULL.      ExprLiteral ::= NULL;
+LString.    ExprLiteral ::= String;
+LChar.      ExprLiteral ::= Char;
+
+-- Expressions ---------------------------------------------
+
+EVar.      Expr9 ::= Ident ;
+ELiteral.  Expr9 ::= ExprLiteral;
+
+
+
+EMethod.   Expr7 ::= Expr7 "." Ident "(" [Expr] ")";
+-- Object field access:
+EApp.      Expr7 ::= Ident "(" [Expr] ")" ; -- Only function call by name
+ESubs.     Expr7 ::= Expr7 "[" Expr "]";
+ESelect.   Expr7 ::= Expr7 "." Expr8;
+
+
+
+ENeg.      Expr6 ::= "-" Expr6 ;
+ENot.      Expr6 ::= "!" Expr6 ;
+
+-- 'New' operator
+ENewArr.   Expr6 ::= "new" ArrayType "[" Expr "]" ;
+ENewObj.   Expr6 ::= "new" BasicType ;
+
+-- Casts:
+EBuiltinCast.   Expr5 ::= "(" TypeBuiltin ")" Expr6 ;
+EArrayCast.     Expr5 ::= "(" ArrayType ")" Expr6 ;
+ECast.          Expr5 ::= "(" Ident ")" Expr6;
+
+EMul.      Expr4 ::= Expr4 MulOp Expr5 ;
+EAdd.      Expr3 ::= Expr3 AddOp Expr4 ;
+ERel.      Expr2 ::= Expr2 RelOp Expr3 ;
+EAnd.      Expr1 ::= Expr2 "&&" Expr1 ;
+EOr.       Expr  ::= Expr1 "||" Expr ;
+
+coercions  Expr 9 ;
+
+separator  Expr "," ;
+
+-- operators -----------------------------------------------
+Plus.      AddOp ::= "+" ;
+Minus.     AddOp ::= "-" ;
+
+Times.     MulOp ::= "*" ;
+Div.       MulOp ::= "/" ;
+Mod.       MulOp ::= "%" ;
+
+LTH.       RelOp ::= "<" ;
+LE.        RelOp ::= "<=" ;
+GTH.       RelOp ::= ">" ;
+GE.        RelOp ::= ">=" ;
+EQU.       RelOp ::= "==" ;
+NE.        RelOp ::= "!=" ;
+
+-- comments ------------------------------------------------
+
+comment    "#" ;
+
+comment    "//" ;
+
+comment    "/*" "*/" ;
